@@ -121,6 +121,7 @@ impl Driver {
         #[cfg(not(target_os = "wasi"))]
         {
             let mut buf = [0; 128];
+            #[allow(clippy::unused_io_amount)]
             loop {
                 match self.receiver.read(&mut buf) {
                     Ok(0) => panic!("EOF on self-pipe"),
