@@ -672,7 +672,7 @@ impl Command {
     /// Sets the child process's user ID. This translates to a
     /// `setuid` call in the child process. Failure in the `setuid`
     /// call will cause the spawn to fail.
-    #[cfg(any(unix))]
+    #[cfg(unix)]
     #[cfg_attr(docsrs, doc(cfg(unix)))]
     pub fn uid(&mut self, id: u32) -> &mut Command {
         #[cfg(target_os = "nto")]
@@ -683,7 +683,7 @@ impl Command {
 
     /// Similar to `uid` but sets the group ID of the child process. This has
     /// the same semantics as the `uid` field.
-    #[cfg(any(unix))]
+    #[cfg(unix)]
     #[cfg_attr(docsrs, doc(cfg(unix)))]
     pub fn gid(&mut self, id: u32) -> &mut Command {
         #[cfg(target_os = "nto")]
@@ -776,7 +776,7 @@ impl Command {
     /// ```
     ///
     /// [signal handler]: crate::signal
-    #[cfg(any(unix, target_vendor = "wasmer"))]
+    #[cfg(unix)]
     #[cfg_attr(docsrs, doc(cfg(unix)))]
     pub fn process_group(&mut self, pgroup: i32) -> &mut Command {
         self.std.process_group(pgroup);

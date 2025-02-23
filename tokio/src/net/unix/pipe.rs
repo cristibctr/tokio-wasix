@@ -3,6 +3,9 @@
 use crate::io::interest::Interest;
 use crate::io::{AsyncRead, AsyncWrite, PollEvented, ReadBuf, Ready};
 
+#[cfg(all(target_family = "wasm", target_vendor = "wasmer"))]
+use mio::wasi::pipe as mio_pipe;
+#[cfg(unix)]
 use mio::unix::pipe as mio_pipe;
 use std::fs::File;
 use std::io::{self, Read, Write};

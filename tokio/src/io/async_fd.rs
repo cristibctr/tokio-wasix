@@ -2,7 +2,10 @@ use crate::io::{Interest, Ready};
 use crate::runtime::io::{ReadyEvent, Registration};
 use crate::runtime::scheduler;
 
+#[cfg(unix)]
 use mio::unix::SourceFd;
+#[cfg(all(target_family = "wasm", target_vendor = "wasmer"))]
+use mio::wasi::SourceFd;
 use std::error::Error;
 use std::fmt;
 use std::io;

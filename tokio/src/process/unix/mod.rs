@@ -37,6 +37,9 @@ use crate::runtime::signal::Handle as SignalHandle;
 use crate::signal::unix::{signal, Signal, SignalKind};
 
 use mio::event::Source;
+#[cfg(all(target_family = "wasm", target_vendor = "wasmer"))]
+use mio::wasi::SourceFd;
+#[cfg(unix)]
 use mio::unix::SourceFd;
 use std::fmt;
 use std::fs::File;

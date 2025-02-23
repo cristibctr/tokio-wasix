@@ -1875,7 +1875,7 @@ impl UdpSocket {
         ))))
     )]
     pub fn tos(&self) -> io::Result<u32> {
-        self.as_socket().tos()
+        self.as_socket().tos_v4()
     }
 
     /// Sets the value for the `IP_TOS` option on this socket.
@@ -1902,7 +1902,7 @@ impl UdpSocket {
         ))))
     )]
     pub fn set_tos(&self, tos: u32) -> io::Result<()> {
-        self.as_socket().set_tos(tos)
+        self.as_socket().set_tos_v4(tos)
     }
 
     /// Gets the value for the `SO_BINDTODEVICE` option on this socket
