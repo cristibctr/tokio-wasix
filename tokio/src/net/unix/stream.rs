@@ -44,6 +44,26 @@ cfg_net_unix! {
     }
 }
 
+cfg_not_wasi_classic! {
+    /// A structure representing a connected Unix socket.
+    ///
+    /// This socket can be connected directly with [`UnixStream::connect`] or accepted
+    /// from a listener with [`UnixListener::accept`]. Additionally, a pair of
+    /// anonymous Unix sockets can be created with `UnixStream::pair`.
+    ///
+    /// To shut down the stream in the write direction, you can call the
+    /// [`shutdown()`] method. This will cause the other peer to receive a read of
+    /// length 0, indicating that no more data will be sent. This only closes
+    /// the stream in one direction.
+    ///
+    /// [`shutdown()`]: fn@crate::io::AsyncWriteExt::shutdown
+    /// [`UnixListener::accept`]: crate::net::UnixListener::accept
+    #[cfg_attr(docsrs, doc(alias = "uds"))]
+    pub struct UnixStream {
+        io: PollEvented<mio::net::UnixStream>,
+    }
+}
+
 impl UnixStream {
     pub(crate) async fn connect_mio(sys: mio::net::UnixStream) -> io::Result<UnixStream> {
         let stream = UnixStream::new(sys)?;
