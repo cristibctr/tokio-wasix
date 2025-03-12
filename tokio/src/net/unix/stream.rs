@@ -44,7 +44,7 @@ cfg_net_unix! {
     }
 }
 
-cfg_not_wasi_classic! {
+cfg_net_wasix! {
     /// A structure representing a connected Unix socket.
     ///
     /// This socket can be connected directly with [`UnixStream::connect`] or accepted
