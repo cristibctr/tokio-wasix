@@ -68,7 +68,7 @@ cfg_net_unix!(
     }
 );
 
-cfg_not_wasi_classic!(
+cfg_net_wasix!(
     impl ReadyEvent {
         pub(crate) fn with_ready(&self, ready: Ready) -> Self {
             Self {

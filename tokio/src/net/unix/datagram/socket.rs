@@ -4,8 +4,16 @@ use crate::net::unix::SocketAddr;
 use std::fmt;
 use std::io;
 use std::net::Shutdown;
-use std::os::unix::io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd};
-use std::os::unix::net;
+#[cfg(unix)]
+use std::os::unix::{
+    io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd},
+    net
+};
+#[cfg(target_vendor = "wasmer")]
+use std::os::wasi::{
+    io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd},
+    net
+};
 use std::path::Path;
 use std::task::{ready, Context, Poll};
 
@@ -14,6 +22,88 @@ cfg_io_util! {
 }
 
 cfg_net_unix! {
+    /// An I/O object representing a Unix datagram socket.
+    ///
+    /// A socket can be either named (associated with a filesystem path) or
+    /// unnamed.
+    ///
+    /// This type does not provide a `split` method, because this functionality
+    /// can be achieved by wrapping the socket in an [`Arc`]. Note that you do
+    /// not need a `Mutex` to share the `UnixDatagram` — an `Arc<UnixDatagram>`
+    /// is enough. This is because all of the methods take `&self` instead of
+    /// `&mut self`.
+    ///
+    /// **Note:** named sockets are persisted even after the object is dropped
+    /// and the program has exited, and cannot be reconnected. It is advised
+    /// that you either check for and unlink the existing socket if it exists,
+    /// or use a temporary file that is guaranteed to not already exist.
+    ///
+    /// [`Arc`]: std::sync::Arc
+    ///
+    /// # Examples
+    /// Using named sockets, associated with a filesystem path:
+    /// ```
+    /// # use std::error::Error;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn Error>> {
+    /// use tokio::net::UnixDatagram;
+    /// use tempfile::tempdir;
+    ///
+    /// // We use a temporary directory so that the socket
+    /// // files left by the bound sockets will get cleaned up.
+    /// let tmp = tempdir()?;
+    ///
+    /// // Bind each socket to a filesystem path
+    /// let tx_path = tmp.path().join("tx");
+    /// let tx = UnixDatagram::bind(&tx_path)?;
+    /// let rx_path = tmp.path().join("rx");
+    /// let rx = UnixDatagram::bind(&rx_path)?;
+    ///
+    /// let bytes = b"hello world";
+    /// tx.send_to(bytes, &rx_path).await?;
+    ///
+    /// let mut buf = vec![0u8; 24];
+    /// let (size, addr) = rx.recv_from(&mut buf).await?;
+    ///
+    /// let dgram = &buf[..size];
+    /// assert_eq!(dgram, bytes);
+    /// assert_eq!(addr.as_pathname().unwrap(), &tx_path);
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// Using unnamed sockets, created as a pair
+    /// ```
+    /// # use std::error::Error;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn Error>> {
+    /// use tokio::net::UnixDatagram;
+    ///
+    /// // Create the pair of sockets
+    /// let (sock1, sock2) = UnixDatagram::pair()?;
+    ///
+    /// // Since the sockets are paired, the paired send/recv
+    /// // functions can be used
+    /// let bytes = b"hello world";
+    /// sock1.send(bytes).await?;
+    ///
+    /// let mut buff = vec![0u8; 24];
+    /// let size = sock2.recv(&mut buff).await?;
+    ///
+    /// let dgram = &buff[..size];
+    /// assert_eq!(dgram, bytes);
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[cfg_attr(docsrs, doc(alias = "uds"))]
+    pub struct UnixDatagram {
+        io: PollEvented<mio::net::UnixDatagram>,
+    }
+}
+
+cfg_net_wasix! {
     /// An I/O object representing a Unix datagram socket.
     ///
     /// A socket can be either named (associated with a filesystem path) or

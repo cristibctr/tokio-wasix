@@ -9,7 +9,10 @@ use mio::wasi::pipe as mio_pipe;
 use mio::unix::pipe as mio_pipe;
 use std::fs::File;
 use std::io::{self, Read, Write};
+#[cfg(not(target_vendor = "wasmer"))]
 use std::os::unix::fs::OpenOptionsExt;
+#[cfg(target_vendor = "wasmer")]
+use std::os::wasi::fs::OpenOptionsExt;
 use std::os::unix::io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, OwnedFd, RawFd};
 use std::path::Path;
 use std::pin::Pin;
@@ -262,10 +265,17 @@ impl OpenOptions {
 
     fn open(&self, path: &Path, pipe_end: PipeEnd) -> io::Result<File> {
         let mut options = std::fs::OpenOptions::new();
+        #[cfg(not(target_vendor = "wasmer"))]
         options
             .read(pipe_end == PipeEnd::Receiver)
             .write(pipe_end == PipeEnd::Sender)
             .custom_flags(libc::O_NONBLOCK);
+
+        #[cfg(target_vendor = "wasmer")]
+        options
+            .read(pipe_end == PipeEnd::Receiver)
+            .write(pipe_end == PipeEnd::Sender)
+            .lookup_flags(libc::O_NONBLOCK.try_into().unwrap());
 
         #[cfg(target_os = "linux")]
         if self.read_write {

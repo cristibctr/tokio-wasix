@@ -6,7 +6,10 @@ use std::path::Path;
 /// This type is a thin wrapper around [`std::os::unix::net::SocketAddr`]. You
 /// can convert to and from the standard library `SocketAddr` type using the
 /// [`From`] trait.
+#[cfg(unix)]
 pub struct SocketAddr(pub(super) std::os::unix::net::SocketAddr);
+#[cfg(target_vendor = "wasmer")]
+pub struct SocketAddr(pub(super) std::os::wasi::net::SocketAddr);
 
 impl SocketAddr {
     /// Returns `true` if the address is unnamed.
@@ -34,13 +37,28 @@ impl fmt::Debug for SocketAddr {
     }
 }
 
+#[cfg(unix)]
 impl From<std::os::unix::net::SocketAddr> for SocketAddr {
     fn from(value: std::os::unix::net::SocketAddr) -> Self {
         SocketAddr(value)
     }
 }
+#[cfg(target_vendor = "wasmer")]
+impl From<std::os::wasi::net::SocketAddr> for SocketAddr {
+    fn from(value: std::os::wasi::net::SocketAddr) -> Self {
+        SocketAddr(value)
+    }
+}
 
+#[cfg(unix)]
 impl From<SocketAddr> for std::os::unix::net::SocketAddr {
+    fn from(value: SocketAddr) -> Self {
+        value.0
+    }
+}
+
+#[cfg(target_vendor = "wasmer")]
+impl From<SocketAddr> for std::os::wasi::net::SocketAddr {
     fn from(value: SocketAddr) -> Self {
         value.0
     }

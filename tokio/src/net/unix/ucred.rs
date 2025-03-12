@@ -35,7 +35,8 @@ impl UCred {
     target_os = "linux",
     target_os = "redox",
     target_os = "android",
-    target_os = "openbsd"
+    target_os = "openbsd",
+    target_vendor = "wasmer"
 ))]
 pub(crate) use self::impl_linux::get_peer_cred;
 
@@ -67,7 +68,8 @@ pub(crate) use self::impl_noproc::get_peer_cred;
     target_os = "linux",
     target_os = "redox",
     target_os = "android",
-    target_os = "openbsd"
+    target_os = "openbsd",
+    target_vendor = "wasmer"
 ))]
 pub(crate) mod impl_linux {
     use crate::net::unix::{self, UnixStream};
@@ -77,41 +79,44 @@ pub(crate) mod impl_linux {
 
     #[cfg(target_os = "openbsd")]
     use libc::sockpeercred as ucred;
-    #[cfg(any(target_os = "linux", target_os = "redox", target_os = "android"))]
+    #[cfg(any(target_os = "linux", target_os = "redox", target_os = "android", target_vendor = "wasmer"))]
     use libc::ucred;
 
     pub(crate) fn get_peer_cred(sock: &UnixStream) -> io::Result<super::UCred> {
+        #[cfg(unix)]
         use std::os::unix::io::AsRawFd;
+        #[cfg(target_vendor = "wasmer")]
+        use std::os::wasi::io::AsRawFd;
 
         unsafe {
             let raw_fd = sock.as_raw_fd();
 
-            let mut ucred = ucred {
+            let mut cred = ucred {
                 pid: 0,
                 uid: 0,
                 gid: 0,
             };
 
-            let ucred_size = mem::size_of::<ucred>();
+            let cred_size = mem::size_of::<ucred>();
 
             // These paranoid checks should be optimized-out
             assert!(mem::size_of::<u32>() <= mem::size_of::<usize>());
-            assert!(ucred_size <= u32::MAX as usize);
+            assert!(cred_size <= u32::MAX as usize);
 
-            let mut ucred_size = ucred_size as socklen_t;
+            let mut cred_size = cred_size as socklen_t;
 
             let ret = getsockopt(
                 raw_fd,
                 SOL_SOCKET,
                 SO_PEERCRED,
-                &mut ucred as *mut ucred as *mut c_void,
-                &mut ucred_size,
+                &mut cred as *mut ucred as *mut c_void,
+                &mut cred_size,
             );
-            if ret == 0 && ucred_size as usize == mem::size_of::<ucred>() {
+            if ret == 0 && cred_size as usize == mem::size_of::<ucred>() {
                 Ok(super::UCred {
-                    uid: ucred.uid as unix::uid_t,
-                    gid: ucred.gid as unix::gid_t,
-                    pid: Some(ucred.pid as unix::pid_t),
+                    uid: cred.uid as unix::uid_t,
+                    gid: cred.gid as unix::gid_t,
+                    pid: Some(cred.pid as unix::pid_t),
                 })
             } else {
                 Err(io::Error::last_os_error())

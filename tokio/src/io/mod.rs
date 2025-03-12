@@ -249,12 +249,10 @@ cfg_net_unix! {
     }
 }
 
-cfg_net! {
-    cfg_not_wasi_classic! {
-        mod async_fd;
-        pub mod wasi {
-            pub use super::async_fd::AsyncFd;
-        }
+cfg_net_wasix! {
+    mod async_fd;
+    pub mod wasi {
+        pub use super::async_fd::AsyncFd;
     }
 }
 
