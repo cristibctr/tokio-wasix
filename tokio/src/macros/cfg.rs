@@ -289,6 +289,16 @@ macro_rules! cfg_net_unix {
     }
 }
 
+macro_rules! cfg_net_wasix {
+    ($($item:item)*) => {
+        $(
+            #[cfg(all(target_vendor = "wasmer", feature = "net"))]
+            #[cfg_attr(docsrs, doc(cfg(all(unix, feature = "net"))))]
+            $item
+        )*
+    }
+}
+
 macro_rules! cfg_net_windows {
     ($($item:item)*) => {
         $(

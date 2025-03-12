@@ -61,6 +61,47 @@ cfg_net_unix! {
     }
 }
 
+cfg_net_wasix! {
+    /// A Unix socket which can accept connections from other Unix sockets.
+    ///
+    /// You can accept a new connection by using the [`accept`](`UnixListener::accept`) method.
+    ///
+    /// A `UnixListener` can be turned into a `Stream` with [`UnixListenerStream`].
+    ///
+    /// [`UnixListenerStream`]: https://docs.rs/tokio-stream/0.1/tokio_stream/wrappers/struct.UnixListenerStream.html
+    ///
+    /// # Errors
+    ///
+    /// Note that accepting a connection can lead to various errors and not all
+    /// of them are necessarily fatal ‒ for example having too many open file
+    /// descriptors or the other side closing the connection while it waits in
+    /// an accept queue. These would terminate the stream if not handled in any
+    /// way.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use tokio::net::UnixListener;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let listener = UnixListener::bind("/path/to/the/socket").unwrap();
+    ///     loop {
+    ///         match listener.accept().await {
+    ///             Ok((stream, _addr)) => {
+    ///                 println!("new client!");
+    ///             }
+    ///             Err(e) => { /* connection failed */ }
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    #[cfg_attr(docsrs, doc(alias = "uds"))]
+    pub struct UnixListener {
+        io: PollEvented<mio::net::UnixListener>,
+    }
+}
+
 impl UnixListener {
     pub(crate) fn new(listener: mio::net::UnixListener) -> io::Result<UnixListener> {
         let io = PollEvented::new(listener)?;
