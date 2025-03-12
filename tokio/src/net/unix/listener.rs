@@ -9,8 +9,14 @@ use std::os::android::net::SocketAddrExt;
 use std::os::linux::net::SocketAddrExt;
 #[cfg(any(target_os = "linux", target_os = "android"))]
 use std::os::unix::ffi::OsStrExt;
+#[cfg(target_os = "linux")]
 use std::os::unix::io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd};
+#[cfg(target_os = "linux")]
 use std::os::unix::net::{self, SocketAddr as StdSocketAddr};
+#[cfg(target_vendor = "wasmer")]
+use std::os::wasi::net::{self, SocketAddr as StdSocketAddr};
+#[cfg(target_vendor = "wasmer")]
+use std::os::wasi::io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd};
 use std::path::Path;
 use std::task::{ready, Context, Poll};
 

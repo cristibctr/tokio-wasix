@@ -171,3 +171,4 @@ allowed_external_types = [
 
 [patch.crates-io]
 libc = { git = "https://github.com/cristibctr/libc-0.2.169", branch = "wasix-0.2.169" }
+mio = { git = "https://github.com/cristibctr/mio.git", version = "1.0.1", branch = "v1.0.1", optional = true, default-features = false }
